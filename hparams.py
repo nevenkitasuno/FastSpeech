@@ -34,7 +34,7 @@ dropout = 0.1
 
 # Train
 alignment_path = "./alignments"
-checkpoint_path = "./model_new"
+checkpoint_path = "/content/drive/My Drive/EVR task 1 v 3/model_new"
 logger_path = "./logger"
 mel_ground_truth = "./mels"
 
