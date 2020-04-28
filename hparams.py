@@ -38,7 +38,7 @@ checkpoint_path = "/content/drive/My Drive/EVR task 1 v 3/model_new"
 logger_path = "./logger"
 mel_ground_truth = "./mels"
 
-batch_size = 64
+batch_size = 32
 epochs = 1000
 n_warm_up_step = 4000
 
