@@ -2,8 +2,10 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np
-import matplotlib
-import matplotlib.pyplot as plt
+import platform
+if platform.system() != 'Windows':
+    import matplotlib
+    import matplotlib.pyplot as plt
 import os
 
 import tacotron2 as Tacotron2

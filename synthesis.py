@@ -1,10 +1,13 @@
 import torch
 import torch.nn as nn
-import matplotlib
-import matplotlib.pyplot as plt
+import platform
+if platform.system() != 'Windows':
+    import matplotlib
+    import matplotlib.pyplot as plt
 import numpy as np
 import time
 import os
+import argparse
 
 from fastspeech import FastSpeech
 from text import text_to_sequence
@@ -46,13 +49,11 @@ def synthesis(model, text, alpha=1.0):
             mel.transpose(1, 2), \
             mel_postnet.transpose(1, 2)
 
-
-if __name__ == "__main__":
-    # Test
-    num = 112000
+def main(args):
+    num = args.num
     alpha = 1.0
     model = get_FastSpeech(num)
-    words = "Let’s go out to the airport. The plane landed ten minutes ago."
+    words = args.words
 
     mel, mel_postnet, mel_torch, mel_postnet_torch = synthesis(
         model, words, alpha=alpha)
@@ -72,3 +73,11 @@ if __name__ == "__main__":
         mel_tac2).cuda()]), wave_glow, os.path.join("results", "tacotron2.wav"))
 
     utils.plot_data([mel.numpy(), mel_postnet.numpy(), mel_tac2])
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--words', type=str, default="Let’s go out to the airport. The plane landed ten minutes ago.")
+    parser.add_argument('--num', type=int, default=112000)
+    args = parser.parse_args()
+
+    main(args)
