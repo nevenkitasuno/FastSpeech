@@ -39,7 +39,7 @@ logger_path = "./logger"
 mel_ground_truth = "./mels"
 
 batch_size = 32
-epochs = 1000
+epochs = 1200
 n_warm_up_step = 4000
 
 learning_rate = 1e-3
@@ -48,5 +48,5 @@ grad_clip_thresh = 1.0
 decay_step = [500000, 1000000, 2000000]
 
 save_step = 1000
-log_step = 5
+log_step = 100
 clear_Time = 20
