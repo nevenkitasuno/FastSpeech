@@ -8,6 +8,7 @@ import numpy as np
 import time
 import os
 import argparse
+import time
 
 from fastspeech import FastSpeech
 from text import text_to_sequence
@@ -52,32 +53,51 @@ def synthesis(model, text, alpha=1.0):
 def main(args):
     num = args.num
     alpha = 1.0
-    model = get_FastSpeech(num)
-    words = args.words
-
-    mel, mel_postnet, mel_torch, mel_postnet_torch = synthesis(
-        model, words, alpha=alpha)
-
+    words_file_path = args.words_file
+    
+    with open(words_file_path) as f:
+        file_lines = [x.strip() for x in f.readlines()] 
+        
     if not os.path.exists("results"):
-        os.mkdir("results")
-    Audio.tools.inv_mel_spec(mel_postnet, os.path.join(
-        "results", words + "_" + str(num) + "_griffin_lim.wav"))
+            os.mkdir("results")
+    
+    if 'f' in args.models:
+        time_measure_start = time.time()
+        model = get_FastSpeech(num)
+        
+        for words in file_lines:
+            mel, mel_postnet, mel_torch, mel_postnet_torch = synthesis(
+                model, words, alpha=alpha)
+            
+            Audio.tools.inv_mel_spec(mel_postnet, os.path.join(
+                "results", words + "_" + str(num) + "_griffin_lim.wav"))
+        print("FastSpeech synthesis time: {}".format(time.time() - time_measure_start))
+        
+        if 'w' in args.models:
+            time_measure_start = time.time()
+            wave_glow = utils.get_WaveGlow()
+            for words in file_lines:
+                waveglow.inference.inference(mel_postnet_torch, wave_glow, os.path.join(
+                    "results", words + "_" + str(num) + "_waveglow.wav"))
+            print("WaveGlow synthesis time: {}".format(time.time() - time_measure_start))
 
-    wave_glow = utils.get_WaveGlow()
-    waveglow.inference.inference(mel_postnet_torch, wave_glow, os.path.join(
-        "results", words + "_" + str(num) + "_waveglow.wav"))
+    if 't' in args.models:
+        time_measure_start = time.time()
+        tacotron2 = utils.get_Tacotron2()
+        for words in file_lines:
+            mel_tac2, _, _ = utils.load_data_from_tacotron2(words, tacotron2)
+            waveglow.inference.inference(torch.stack([torch.from_numpy(
+                mel_tac2).cuda()]), wave_glow, os.path.join("results", words + "_" + str(num) + "_tacotron2.wav"))
 
-    tacotron2 = utils.get_Tacotron2()
-    mel_tac2, _, _ = utils.load_data_from_tacotron2(words, tacotron2)
-    waveglow.inference.inference(torch.stack([torch.from_numpy(
-        mel_tac2).cuda()]), wave_glow, os.path.join("results", "tacotron2.wav"))
-
-    utils.plot_data([mel.numpy(), mel_postnet.numpy(), mel_tac2])
+            if platform.system() != 'Windows':
+                utils.plot_data([mel.numpy(), mel_postnet.numpy(), mel_tac2])
+        print("Tacotron 2 synthesis time: {}".format(time.time() - time_measure_start))
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--words', type=str, default="Let’s go out to the airport. The plane landed ten minutes ago.")
+    parser.add_argument('--words_file', type=str, default="./synthesise.txt")
     parser.add_argument('--num', type=int, default=112000)
+    parser.add_argument('--models', type=str, default="fwt") # f for FastSpeech, w for WaveGlow, t for Tacotron2. w only with f.
     args = parser.parse_args()
 
     main(args)

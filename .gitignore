@@ -11,3 +11,4 @@ alignments/
 .venv/
 tacotron2/pretrained_model
 waveglow/pretrained_model
+synthesise.txt
